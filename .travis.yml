@@ -1,0 +1,17 @@
+language: node_js
+node_js:
+- stable
+env:
+  global:
+    secure: a087fSvJmSHuU2EXUx9ZSCHTa/eIP8Ocg36nlrayMjJapVcwWzxois4qhzKbDxrrN1pyJauVPqYF/LvLEgBN4Lc7QV0zpArFUPCD16jmKcjjT1G0pRCdrB3YbQKifog56hZ3Ohyl+Z0L7VhukKVx4pinn+OH8XobkR7Oh/j8ZiM3n8puqCgk0caD5dfTUGEswOj5vcCYG3Pln9o+SSGZt7s3SFRlPSK4wzlbJWHEG+7f7Z6OQDhonLYjka/QZMTEccZzfwVCk2QPXYP9JpwIF2h6UR8UXwSp+FGEMriRb+kJhdZZ3ChNZ0+wBL2L3L2ee9ovWbf5GatYtZ+Al2/WjDF1Nlvzkd77cTOViDBTRPOtSXeKn3KJTsokU3iKy0KnV5QtLzEmToW7eGAwp6io9vIrHsYRufrBmm+mEkGRHvUj4TaAlHCTiIwXGRp13INfDZZiNFJSthqpfpmW+/2a7MsURhPJgEX0mp6dfTY1fL3hC4BVy8+IPQwn65XENqcc1/Dt0kkPCc4TmKwmTiq/8fST/fUJhumS75cVtTsykv/LJWvt4ooxjQydTZkFgJIE0PGmYIDsMDrpKFjf6UMzqn891rbxmRSZrI/qvZPgQ1uYcjmqXnRtX7ePAj28tqE7MEuuLjB7kExFcD+ARzly3y1Na0MJZHDxqb8jvoKJFic=
+script:
+- npx elm make src/Main.elm --output=dist/index.html
+deploy:
+  provider: pages
+  skip-cleanup: true
+  local-dir: dist
+  github-token: "$GH_TOKEN"
+  on:
+    branch: master
+notifications:
+  email: false
