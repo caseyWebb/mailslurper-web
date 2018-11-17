@@ -1,13 +1,13 @@
 module Main exposing (main)
 
-import Browser
+import Browser exposing (Document)
 import Html exposing (..)
 import Http
 import Mail exposing (Mail)
 
 
 main =
-    Browser.element
+    Browser.document
         { init = init
         , update = update
         , subscriptions = subscriptions
@@ -32,6 +32,7 @@ type Problem
 type alias ReadyModel =
     { mail : List Mail
     }
+
 
 init : () -> ( Model, Cmd Msg )
 init _ =
@@ -73,7 +74,7 @@ subscriptions model =
 -- VIEW
 
 
-view : Model -> Html msg
+view : Model -> Document msg
 view model =
     case model of
         Loading ->
@@ -86,40 +87,60 @@ view model =
             viewReady m
 
 
-viewLoading : Html msg
+viewLoading : Document msg
 viewLoading =
-    div []
-        [ text "Loading..."
+    { title = "Loading..."
+    , body =
+        [ div []
+            [ text "Loading..."
+            ]
         ]
+    }
 
 
-viewError : Problem -> Html msg
+viewError : Problem -> Document msg
 viewError err =
-    div []
-        [ text (getErrorText err)
+    { title = "Error!"
+    , body =
+        [ div []
+            [ text (getErrorText err)
+            ]
         ]
+    }
 
 
-viewReady : ReadyModel -> Html msg
+viewReady : ReadyModel -> Document msg
 viewReady model =
-    ul [] (List.map createMailListItem model.mail)
+    { title = "mailslurper-web (@TODO count)"
+    , body =
+        [ ul
+            []
+            (List.map createMailListItem model.mail)
+        ]
+    }
+
 
 createMailListItem : Mail -> Html msg
 createMailListItem mail =
-  li [] [ text mail.subject ]
+    li [] [ text mail.subject ]
+
 
 getErrorText : Problem -> String
 getErrorText problem =
-  case problem of
-    ServerProblem err ->
-      case err of
-        Http.BadUrl m ->
-          "Invalid API URL"
-        Http.Timeout ->
-          "Network Timeout"
-        Http.BadStatus status ->
-          "Bad Status: " ++ (String.fromInt status)
-        Http.BadBody string ->
-          "Bad Body: " ++ string
-        Http.NetworkError ->
-          "Network Error"
+    case problem of
+        ServerProblem err ->
+            case err of
+                Http.BadUrl m ->
+                    "Invalid API URL"
+
+                Http.Timeout ->
+                    "Network Timeout"
+
+                Http.BadStatus status ->
+                    "Bad Status: " ++ String.fromInt status
+
+                Http.BadBody string ->
+                    "Bad Body: " ++ string
+
+                Http.NetworkError ->
+                    "Network Error"
