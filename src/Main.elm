@@ -2,8 +2,10 @@ module Main exposing (main)
 
 import Browser exposing (Document)
 import Element exposing (Element)
+import Element.Background
 import Html exposing (Html)
 import Http
+import List.MapParity
 import Mail exposing (Mail)
 import Mail.Address exposing (MailAddress)
 
@@ -187,16 +189,29 @@ createMailList : List Mail -> Element msg
 createMailList mail =
     Element.column
         [ Element.width Element.fill ]
-        (List.map createMailListItem mail)
+        (List.MapParity.mapParity createMailListItem mail)
 
 
-createMailListItem : Mail -> Element msg
-createMailListItem mail =
-    Element.row [ Element.width Element.fill ]
+createMailListItem : Mail -> List.MapParity.Parity -> Element msg
+createMailListItem mail parity =
+    Element.row
+        [ Element.width Element.fill
+        , getAlternatingBackground parity
+        ]
         (List.map
             (\c -> Element.column [ columnSizing c ] [ Element.text (c.getValue mail) ])
             columns
         )
+
+
+getAlternatingBackground : List.MapParity.Parity -> Element.Attribute a
+getAlternatingBackground parity =
+    case parity of
+        List.MapParity.Odd ->
+            Element.Background.color (Element.rgb255 200 200 200)
+
+        List.MapParity.Even ->
+            Element.Background.color (Element.rgb255 255 255 255)
 
 
 getErrorText : Problem -> String
