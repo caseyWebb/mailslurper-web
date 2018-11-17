@@ -156,7 +156,6 @@ viewReady model =
             (Element.column
                 [ Element.width Element.fill ]
                 [ leftSidebar model
-                , Element.el [ Element.width Element.fill ] (Element.text "Foobar")
                 ]
             )
         ]
@@ -197,11 +196,19 @@ createMailListItem mail parity =
     Element.row
         [ Element.width Element.fill
         , getAlternatingBackground parity
+        , highlightOnHover
         ]
         (List.map
             (\c -> Element.column [ columnSizing c ] [ Element.text (c.getValue mail) ])
             columns
         )
+
+
+highlightOnHover : Element.Attribute a
+highlightOnHover =
+    Element.mouseOver
+        [ Element.Background.color (Element.rgb255 100 100 100)
+        ]
 
 
 getAlternatingBackground : List.MapParity.Parity -> Element.Attribute a
