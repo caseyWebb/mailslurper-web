@@ -56,34 +56,6 @@ init _ =
     )
 
 
-columns : List Column
-columns =
-    [ { title = "Date"
-      , width = 20
-      , visible = True
-      , getValue = \m -> m.dateSent
-      }
-    , { title = "From"
-      , width = 20
-      , visible = True
-      , getValue = \m -> Mail.Address.toString m.fromAddress
-      }
-    , { title = "Subject"
-      , width = 60
-      , visible = True
-      , getValue = \m -> m.subject
-      }
-    ]
-
-
-initReadyModel : List Mail -> Model
-initReadyModel mail =
-    { mail = mail
-    , selectedMail = Nothing
-    , columns = columns
-    }
-
-
 
 -- UPDATE
 
@@ -96,13 +68,35 @@ type Msg
 update : Msg -> ReadyState -> ( ReadyState, Cmd Msg )
 update msg readyState =
     let
+        defaults =
+            { mail = []
+            , selectedMail = Nothing
+            , columns =
+                [ { title = "Date"
+                  , width = 20
+                  , visible = True
+                  , getValue = \m -> m.dateSent
+                  }
+                , { title = "From"
+                  , width = 20
+                  , visible = True
+                  , getValue = \m -> Mail.Address.toString m.fromAddress
+                  }
+                , { title = "Subject"
+                  , width = 60
+                  , visible = True
+                  , getValue = \m -> m.subject
+                  }
+                ]
+            }
+
         model =
             case readyState of
                 Loading ->
-                    initReadyModel []
+                    defaults
 
                 Failure _ ->
-                    initReadyModel []
+                    defaults
 
                 Ready m ->
                     m
@@ -111,7 +105,7 @@ update msg readyState =
         MailLoaded result ->
             case result of
                 Ok mail ->
-                    ( Ready (initReadyModel mail), Cmd.none )
+                    ( Ready { model | mail = mail }, Cmd.none )
 
                 Err err ->
                     ( Failure (ServerProblem err), Cmd.none )
@@ -195,7 +189,7 @@ createMailList model =
         [ createColumnHeadings model.columns
         , Element.column
             [ Element.width Element.fill ]
-            (List.MapParity.mapParity createMailListItem model.mail)
+            (List.MapParity.mapParity (createMailListItem model) model.mail)
         ]
 
 
@@ -208,8 +202,8 @@ createColumnHeadings cs =
         )
 
 
-createMailListItem : Mail -> List.MapParity.Parity -> Element Msg
-createMailListItem mail parity =
+createMailListItem : Model -> Mail -> List.MapParity.Parity -> Element Msg
+createMailListItem model mail parity =
     Element.row
         [ Element.width Element.fill
         , getAlternatingBackground parity
@@ -218,7 +212,7 @@ createMailListItem mail parity =
         ]
         (List.map
             (\c -> Element.column [ columnSizing c ] [ Element.text (c.getValue mail) ])
-            columns
+            model.columns
         )
 
 
