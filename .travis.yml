@@ -4,6 +4,7 @@ node_js:
 cache:
   yarn: true
   directories:
+    - .elm
     - .yarn
     - elm-stuff
     - node_modules
