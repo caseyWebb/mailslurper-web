@@ -1,9 +1,11 @@
 module Main exposing (main)
 
 import Browser exposing (Document)
-import Html exposing (..)
+import Element exposing (Element)
+import Html exposing (Html)
 import Http
 import Mail exposing (Mail)
+import Mail.Address exposing (MailAddress)
 
 
 main =
@@ -29,8 +31,28 @@ type Problem
     = ServerProblem Http.Error
 
 
+
+-- type Width
+--     = Fill
+--     | Percent Int
+
+
+type alias Column =
+    { title : String
+    , width : Int
+    , visible : Bool
+    , getValue : Mail -> String
+    }
+
+
 type alias ReadyModel =
     { mail : List Mail
+    , selectedMail : Maybe Mail
+    , columns : List Column
+
+    -- , dateColumnWidth : Width
+    -- , fromColumnWidth : Width
+    -- , subjectColumnWidth : Width
     }
 
 
@@ -41,8 +63,38 @@ init _ =
     )
 
 
+columns : List Column
+columns =
+    [ { title = "Date"
+      , width = 20
+      , visible = True
+      , getValue = \m -> m.dateSent
+      }
+    , { title = "From"
+      , width = 20
+      , visible = True
+      , getValue = \m -> Mail.Address.toString m.fromAddress
+      }
+    , { title = "Subject"
+      , width = 60
+      , visible = True
+      , getValue = \m -> m.subject
+      }
+    ]
 
+
+initReadyModel : List Mail -> ReadyModel
+initReadyModel mail =
+    { mail = mail
+    , selectedMail = Nothing
+    , columns = columns
+    }
+
+
+
+-- readyModel mail =
 -- UPDATE
+-- model |
 
 
 type Msg
@@ -55,7 +107,7 @@ update msg model =
         MailLoaded result ->
             case result of
                 Ok mail ->
-                    ( Ready { mail = mail }, Cmd.none )
+                    ( Ready (initReadyModel mail), Cmd.none )
 
                 Err err ->
                     ( Failure (ServerProblem err), Cmd.none )
@@ -90,11 +142,7 @@ view model =
 viewLoading : Document msg
 viewLoading =
     { title = "Loading..."
-    , body =
-        [ div []
-            [ text "Loading..."
-            ]
-        ]
+    , body = [ Html.text "Loading..." ]
     }
 
 
@@ -102,9 +150,7 @@ viewError : Problem -> Document msg
 viewError err =
     { title = "Error!"
     , body =
-        [ div []
-            [ text (getErrorText err)
-            ]
+        [ Html.code [] [ Html.text (getErrorText err) ]
         ]
     }
 
@@ -113,16 +159,47 @@ viewReady : ReadyModel -> Document msg
 viewReady model =
     { title = "mailslurper-web (@TODO count)"
     , body =
-        [ ul
-            []
-            (List.map createMailListItem model.mail)
+        [ Element.layout
+            [ Element.padding 20
+            , Element.width Element.fill
+            ]
+            (Element.row
+                [ Element.width Element.fill ]
+                [ leftSidebar model ]
+            )
         ]
     }
 
 
-createMailListItem : Mail -> Html msg
+columnSizing : Column -> Element.Attribute msg
+columnSizing c =
+    Element.width (Element.fillPortion c.width)
+
+
+leftSidebar : ReadyModel -> Element msg
+leftSidebar model =
+    Element.column [ Element.width Element.fill ]
+        [ mailListHeadings model
+        , Element.row [ Element.width Element.fill ] (List.map createMailListItem model.mail)
+        ]
+
+
+mailListHeadings : ReadyModel -> Element msg
+mailListHeadings model =
+    Element.row [ Element.width Element.fill ]
+        (List.map
+            (\c -> Element.column [ columnSizing c ] [ Element.text c.title ])
+            model.columns
+        )
+
+
+createMailListItem : Mail -> Element msg
 createMailListItem mail =
-    li [] [ text mail.subject ]
+    Element.row [ Element.width Element.fill ]
+        (List.map
+            (\c -> Element.column [ columnSizing c ] [ Element.text (c.getValue mail) ])
+            columns
+        )
 
 
 getErrorText : Problem -> String
