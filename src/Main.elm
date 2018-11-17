@@ -31,12 +31,6 @@ type Problem
     = ServerProblem Http.Error
 
 
-
--- type Width
---     = Fill
---     | Percent Int
-
-
 type alias Column =
     { title : String
     , width : Int
@@ -49,10 +43,6 @@ type alias ReadyModel =
     { mail : List Mail
     , selectedMail : Maybe Mail
     , columns : List Column
-
-    -- , dateColumnWidth : Width
-    -- , fromColumnWidth : Width
-    -- , subjectColumnWidth : Width
     }
 
 
@@ -92,9 +82,7 @@ initReadyModel mail =
 
 
 
--- readyModel mail =
 -- UPDATE
--- model |
 
 
 type Msg
@@ -181,18 +169,25 @@ columnSizing c =
 leftSidebar : ReadyModel -> Element msg
 leftSidebar model =
     Element.column [ Element.width Element.fill ]
-        [ columnHeadings model.columns
-        , Element.column [ Element.width Element.fill ] (List.map createMailListItem model.mail)
+        [ createColumnHeadings model.columns
+        , createMailList model.mail
         ]
 
 
-columnHeadings : List Column -> Element msg
-columnHeadings cs =
+createColumnHeadings : List Column -> Element msg
+createColumnHeadings cs =
     Element.row [ Element.width Element.fill ]
         (List.map
             (\c -> Element.column [ columnSizing c ] [ Element.text c.title ])
             cs
         )
+
+
+createMailList : List Mail -> Element msg
+createMailList mail =
+    Element.column
+        [ Element.width Element.fill ]
+        (List.map createMailListItem mail)
 
 
 createMailListItem : Mail -> Element msg
@@ -208,18 +203,23 @@ getErrorText : Problem -> String
 getErrorText problem =
     case problem of
         ServerProblem err ->
-            case err of
-                Http.BadUrl m ->
-                    "Invalid API URL"
+            getServerErrorText err
 
-                Http.Timeout ->
-                    "Network Timeout"
 
-                Http.BadStatus status ->
-                    "Bad Status: " ++ String.fromInt status
+getServerErrorText : Http.Error -> String
+getServerErrorText err =
+    case err of
+        Http.BadUrl m ->
+            "Invalid API URL"
 
-                Http.BadBody string ->
-                    "Bad Body: " ++ string
+        Http.Timeout ->
+            "Network Timeout"
 
-                Http.NetworkError ->
-                    "Network Error"
+        Http.BadStatus status ->
+            "Bad Status: " ++ String.fromInt status
+
+        Http.BadBody string ->
+            "Bad Body: " ++ string
+
+        Http.NetworkError ->
+            "Network Error"
