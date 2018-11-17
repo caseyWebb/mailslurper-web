@@ -163,9 +163,11 @@ viewReady model =
             [ Element.padding 20
             , Element.width Element.fill
             ]
-            (Element.row
+            (Element.column
                 [ Element.width Element.fill ]
-                [ leftSidebar model ]
+                [ leftSidebar model
+                , Element.el [ Element.width Element.fill ] (Element.text "Foobar")
+                ]
             )
         ]
     }
@@ -179,17 +181,17 @@ columnSizing c =
 leftSidebar : ReadyModel -> Element msg
 leftSidebar model =
     Element.column [ Element.width Element.fill ]
-        [ mailListHeadings model
-        , Element.row [ Element.width Element.fill ] (List.map createMailListItem model.mail)
+        [ columnHeadings model.columns
+        , Element.column [ Element.width Element.fill ] (List.map createMailListItem model.mail)
         ]
 
 
-mailListHeadings : ReadyModel -> Element msg
-mailListHeadings model =
+columnHeadings : List Column -> Element msg
+columnHeadings cs =
     Element.row [ Element.width Element.fill ]
         (List.map
             (\c -> Element.column [ columnSizing c ] [ Element.text c.title ])
-            model.columns
+            cs
         )
 
 
