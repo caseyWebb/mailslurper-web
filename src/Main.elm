@@ -9,6 +9,7 @@ import Http
 import List.MapParity
 import Mail exposing (Mail)
 import Mail.Address exposing (MailAddress)
+import Mail.Sort
 
 
 main =
@@ -38,6 +39,7 @@ type alias Column =
     { title : String
     , width : Int
     , visible : Bool
+    , sortBy : Mail.Sort.SortBy
     , getValue : Mail -> String
     }
 
@@ -46,6 +48,8 @@ type alias Model =
     { mail : List Mail
     , selectedMail : Maybe Mail
     , columns : List Column
+    , sortBy : Mail.Sort.SortBy
+    , sortOrder : Mail.Sort.SortOrder
     }
 
 
@@ -63,6 +67,7 @@ init _ =
 type Msg
     = MailLoaded (Result Http.Error (List Mail))
     | SelectMail Mail
+    | ToggleSort Mail.Sort.SortBy
 
 
 update : Msg -> ReadyState -> ( ReadyState, Cmd Msg )
@@ -71,20 +76,25 @@ update msg readyState =
         defaults =
             { mail = []
             , selectedMail = Nothing
+            , sortBy = Mail.Sort.DateSent
+            , sortOrder = Mail.Sort.Ascending
             , columns =
                 [ { title = "Date"
                   , width = 20
                   , visible = True
+                  , sortBy = Mail.Sort.DateSent
                   , getValue = \m -> m.dateSent
                   }
                 , { title = "From"
                   , width = 20
                   , visible = True
+                  , sortBy = Mail.Sort.FromAddress
                   , getValue = \m -> Mail.Address.toString m.fromAddress
                   }
                 , { title = "Subject"
                   , width = 60
                   , visible = True
+                  , sortBy = Mail.Sort.Subject
                   , getValue = \m -> m.subject
                   }
                 ]
@@ -112,6 +122,22 @@ update msg readyState =
 
         SelectMail mail ->
             ( Ready { model | selectedMail = Just mail }, Cmd.none )
+
+        ToggleSort sortBy ->
+            let
+                sortOrder =
+                    if sortBy /= model.sortBy then
+                        model.sortOrder
+
+                    else
+                        case model.sortOrder of
+                            Mail.Sort.Ascending ->
+                                Mail.Sort.Descending
+
+                            Mail.Sort.Descending ->
+                                Mail.Sort.Ascending
+            in
+            ( Ready { model | sortBy = sortBy, sortOrder = sortOrder }, Cmd.none )
 
 
 
@@ -185,20 +211,31 @@ columnSizing c =
 
 createMailList : Model -> Element Msg
 createMailList model =
+    let
+        sortedMail =
+            Mail.Sort.sort model.sortBy model.sortOrder model.mail
+    in
     Element.column [ Element.width Element.fill ]
         [ createColumnHeadings model.columns
         , Element.column
             [ Element.width Element.fill ]
-            (List.MapParity.mapParity (createMailListItem model) model.mail)
+            (List.MapParity.mapParity (createMailListItem model) sortedMail)
         ]
 
 
 createColumnHeadings : List Column -> Element Msg
 createColumnHeadings cs =
     Element.row [ Element.width Element.fill ]
-        (List.map
-            (\c -> Element.column [ columnSizing c ] [ Element.text c.title ])
-            cs
+        (cs
+            |> List.map
+                (\c ->
+                    Element.column
+                        [ columnSizing c
+                        , Element.Events.onClick (ToggleSort c.sortBy)
+                        ]
+                        [ Element.text c.title
+                        ]
+                )
         )
 
 
