@@ -1,9 +1,12 @@
 module Main exposing (main)
 
+-- import Element.Attribute
+
 import Browser exposing (Document)
 import Element exposing (Element)
 import Element.Background
 import Element.Events
+import FontAwesome
 import Html exposing (Html)
 import Http
 import List.MapParity
@@ -216,17 +219,17 @@ createMailList model =
             Mail.Sort.sort model.sortBy model.sortOrder model.mail
     in
     Element.column [ Element.width Element.fill ]
-        [ createColumnHeadings model.columns
+        [ createColumnHeadings model
         , Element.column
             [ Element.width Element.fill ]
             (List.MapParity.mapParity (createMailListItem model) sortedMail)
         ]
 
 
-createColumnHeadings : List Column -> Element Msg
-createColumnHeadings cs =
+createColumnHeadings : Model -> Element Msg
+createColumnHeadings model =
     Element.row [ Element.width Element.fill ]
-        (cs
+        (model.columns
             |> List.map
                 (\c ->
                     Element.column
@@ -234,9 +237,25 @@ createColumnHeadings cs =
                         , Element.Events.onClick (ToggleSort c.sortBy)
                         ]
                         [ Element.text c.title
+                        , Element.el [ Element.alignRight ] (getSortIndicator model c)
                         ]
                 )
         )
+
+
+getSortIndicator : Model -> Column -> Element.Element msg
+getSortIndicator model column =
+    if model.sortBy == column.sortBy then
+        FontAwesome.caret
+            (if model.sortOrder == Mail.Sort.Ascending then
+                FontAwesome.Up
+
+             else
+                FontAwesome.Down
+            )
+
+    else
+        Element.none
 
 
 createMailListItem : Model -> Mail -> List.MapParity.Parity -> Element Msg

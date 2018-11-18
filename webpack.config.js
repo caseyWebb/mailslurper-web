@@ -85,7 +85,12 @@ module.exports = {
     noParse: /\.elm$/
   },
 
-  plugins: [new HtmlPlugin(), new TSCheckerPlugin()],
+  plugins: [
+    new HtmlPlugin({
+      template: 'src/index.html'
+    }),
+    new TSCheckerPlugin()
+  ],
 
   resolve: {
     extensions: ['.elm', '.js', '.ts']
