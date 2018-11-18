@@ -4,14 +4,28 @@
     "start": "NODE_ENV=development webpack-dev-server --hot"
   },
   "devDependencies": {
+    "@types/html-webpack-plugin": "^3.2.0",
+    "@types/node": "^10.12.9",
+    "@types/pouchdb-browser": "^6.1.2",
+    "@types/uglifyjs-webpack-plugin": "^1.1.0",
     "elm": "^0.19.0-bugfix2",
     "elm-hot-webpack-loader": "^1.0.2",
     "elm-webpack-loader": "^5.0.0",
+    "fork-ts-checker-webpack-plugin": "^0.4.15",
     "html-webpack-plugin": "^3.2.0",
+    "prettier": "^1.15.2",
+    "ts-loader": "^5.3.0",
+    "tslint": "^5.11.0",
+    "tslint-config-prettier": "^1.16.0",
+    "typescript": "^3.1.6",
     "uglifyjs-webpack-plugin": "^2.0.1",
     "webpack": "^4.25.1",
     "webpack-cli": "^3.1.2",
     "webpack-dev-server": "^3.1.10",
     "webpack-html-plugin": "^0.1.1"
+  },
+  "dependencies": {
+    "pouchdb-browser": "^7.0.0",
+    "tslib": "^1.9.3"
   }
 }
