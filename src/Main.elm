@@ -261,11 +261,13 @@ getSortIndicator model column =
 createMailListItem : Model -> Mail -> List.MapParity.Parity -> Element Msg
 createMailListItem model mail parity =
     Element.row
-        [ Element.width Element.fill
-        , getAlternatingBackground parity
-        , highlightOnHover
-        , Element.Events.onClick (SelectMail mail)
-        ]
+        (List.concat
+            [ [ Element.width Element.fill
+              , Element.Events.onClick (SelectMail mail)
+              ]
+            , getBackgroundStyles model mail parity
+            ]
+        )
         (List.map
             (\c -> Element.column [ columnSizing c ] [ Element.text (c.getValue mail) ])
             model.columns
@@ -282,21 +284,31 @@ createMailPreview maybeSelectedMail =
             Element.el [] (Element.text "Select a message from the left")
 
 
-highlightOnHover : Element.Attribute a
-highlightOnHover =
-    Element.mouseOver
-        [ Element.Background.color (Element.rgb255 100 100 100)
-        ]
+getBackgroundStyles : Model -> Mail -> List.MapParity.Parity -> List (Element.Attribute a)
+getBackgroundStyles model mail parity =
+    let
+        defaultBackground =
+            [ Element.mouseOver
+                [ Element.Background.color (Element.rgb255 100 100 100)
+                ]
+            , case parity of
+                List.MapParity.Odd ->
+                    Element.Background.color (Element.rgb255 200 200 200)
 
+                List.MapParity.Even ->
+                    Element.Background.color (Element.rgb255 255 255 255)
+            ]
+    in
+    case model.selectedMail of
+        Nothing ->
+            defaultBackground
 
-getAlternatingBackground : List.MapParity.Parity -> Element.Attribute a
-getAlternatingBackground parity =
-    case parity of
-        List.MapParity.Odd ->
-            Element.Background.color (Element.rgb255 200 200 200)
+        Just selectedMail ->
+            if selectedMail == mail then
+                [ Element.Background.color (Element.rgb255 50 50 50) ]
 
-        List.MapParity.Even ->
-            Element.Background.color (Element.rgb255 255 255 255)
+            else
+                defaultBackground
 
 
 getErrorText : Problem -> String
